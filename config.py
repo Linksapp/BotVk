@@ -1,0 +1,2 @@
+token = ''
+admin_ids = []
