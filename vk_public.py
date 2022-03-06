@@ -11,3 +11,5 @@ for event in longpoll.listen():
 		print(longpoll.listen())
 		print(event.user_id)
 		print(event.text)
+
+print('aaaa')
