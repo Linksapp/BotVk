@@ -18,7 +18,7 @@ def registration(id):
 
 def send_message(id, text):
 	'''
-	
+	Отправляет сообщение
 	'''
 	if isinstance(id, list):
 		for _ in id:
@@ -26,9 +26,11 @@ def send_message(id, text):
 	elif isinstance(id, int):
 		vk.messages.send(user_id=id, random_id=0, message=str(text))
 
-def get_info_about_member(id):
+def get_info_about_user(id):
+	'''
+	Возвращает информацию о пользователе 
+	'''
 	info = {}
-	# person_id = str(vk.users.get(user_ids = id)[0]['id'])
 	info['id'] = vk.users.get(user_id = id)[0]['id']
 	info['first_name'] = vk.users.get(user_id = id)[0]['first_name']
 	info['last_name'] = vk.users.get(user_id = id)[0]['last_name']
@@ -41,7 +43,7 @@ for event in longpoll.listen():
 	if text == 'начать':
 		if event.type == VkEventType.MESSAGE_NEW and registration(event.user_id) and event.to_me:
 			send_message(event.user_id,'Hello')
-		# send_message(event.user_id, get_info_about_member(event.user_id))
+		# send_message(event.user_id, get_info_about_user(event.user_id))
 		# send_message(members, 'Рассылка подписчикам')
 		elif event.type == VkEventType.MESSAGE_NEW and registration(event.user_id) == False and event.to_me:
 			send_message(event.user_id, 'Подпишись на группу')
