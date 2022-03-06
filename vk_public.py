@@ -6,10 +6,16 @@ session = vk_api.VkApi(token=token)
 vk = session.get_api()
 longpoll = VkLongPoll(session, group_id=211021014)
 
+#print(members)
+def registration(id):
+	members = vk.groups.getMembers(group_id=211021014)['items']
+	return id in members
+	
 for event in longpoll.listen():
-	if event.type == VkEventType.MESSAGE_NEW:
-		print(longpoll.listen())
-		print(event.user_id)
-		print(event.text)
+	if event.type == VkEventType.MESSAGE_NEW and registration(event.user_id) and event.to_me:
+		vk.messages.send(user_id=event.user_id, random_id=0, message='Hello')
+		
 
-print('aaaa')
+# USER_RECORDIN_VOICE
+
+
