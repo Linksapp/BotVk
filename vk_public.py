@@ -37,11 +37,14 @@ def get_info_about_member(id):
 
 
 for event in longpoll.listen():
-	if event.type == VkEventType.MESSAGE_NEW and registration(event.user_id) and event.to_me:
-		send_message(event.user_id,'Hello')
+	text = event.text.lower()
+	if text == 'начать':
+		if event.type == VkEventType.MESSAGE_NEW and registration(event.user_id) and event.to_me:
+			send_message(event.user_id,'Hello')
 		# send_message(event.user_id, get_info_about_member(event.user_id))
 		# send_message(members, 'Рассылка подписчикам')
-
+		elif event.type == VkEventType.MESSAGE_NEW and registration(event.user_id) == False and event.to_me:
+			send_message(event.user_id, 'Подпишись на группу')
 
 # USER_RECORDING_VOICE
 
