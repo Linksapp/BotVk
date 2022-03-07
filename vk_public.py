@@ -45,18 +45,19 @@ def get_info_about_user(id: int) -> dict:
 
 def bot_cycle():
 	for event in longpoll.listen():
-		text = event.text.lower()
-		if text == 'начать' and event.type == VkEventType.MESSAGE_NEW and event.to_me:
-			if registration(event.user_id): 
-				send_message(event.user_id,'Hello')
-				create_user(True)
-			# send_message(event.user_id, get_info_about_user(event.user_id))
-			# send_message(members, 'Рассылка подписчикам')
-			elif registration(event.user_id) == False: 
-				send_message(event.user_id, 'Подпишись на группу!')
-				create_user(False)
-		if event.user_id in admin_ids and event.type == VkEventType.MESSAGE_NEW:
-			if text == 'exit()': sys.exit()
+		if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+			text = event.text.lower()
+			if text == 'начать':
+				if registration(event.user_id): 
+					send_message(event.user_id,'Hello')
+					create_user(True)
+				# send_message(event.user_id, get_info_about_user(event.user_id))
+				# send_message(members, 'Рассылка подписчикам')
+				elif registration(event.user_id) == False: 
+					send_message(event.user_id, 'Подпишись на группу!')
+					create_user(False)
+			if event.user_id in admin_ids:
+				if text == 'exit()': sys.exit()
 
 	# USER_RECORDING_VOICE
 
