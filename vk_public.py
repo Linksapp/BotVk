@@ -3,7 +3,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from user import User
 from config import *
-
+#
 
 def create_user(id: int) -> bool:
 	"""Создает пользователя"""
