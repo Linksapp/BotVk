@@ -1,5 +1,5 @@
 import json
-
+#
 class User:
     """Default User Class"""
     def __init__(self, user_info: dict, registration: bool = False) -> None:
