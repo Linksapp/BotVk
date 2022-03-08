@@ -6,41 +6,37 @@ class User:
         # Пользовательские данные
         if user_info == {}: self.create = False
         else:
-            self.user_id = user_info['id']
-            self.user_name = [user_info['first_name'], user_info['last_name']]
-            # self.user_domain = user_info['domain']
-
+            self.user_info = user_info
             self.registratiom = registration
             self.create = True
 
-        self.return_error(self.create)
+        self.return_error()
         self.save_info()
     
     def get_info(self):
         pass
 
     def save_info(self):
-        with open('dumb_db.txt', 'w', encoding='UTF-8') as f:
-            f.write(f'{self.user_id} - {self.user_name}')
+        """При записи нового пользователя, очищает бд. Фикс it"""
+        with open('dumb_db.txt', 'w', encoding='UTF-8') as file:
+            file.write(str(self.user_info) + '\n')
             return True
     
-    def return_error(self, create: bool): 
-        if create == False: raise BaseException('Error! Dont get user_info like full dict')
+    def return_error(self): 
+        if self.create == False: raise BaseException('Error! Dont get user_info like full dict')
         else: pass
 
     def check_create(self) -> bool:
         """Дописать функцию"""
-        with open('dumb_db.txt', 'r', encoding='UTF-8') as f:
-            if self.user_id in f:
+        with open('dumb_db.txt', 'r', encoding='UTF-8') as file:
+            if self.user_info in file:
                 return True
             else:
                 self.save_info() # передовать все необходимые аргументы для сохранения
                 return True
 
     def print_info(self):
-        print(self.user_id,
-        *self.user_name,
-        # self.user_domain,
+        print(self.user_info,
         sep = '\n'
         )
 
@@ -53,3 +49,4 @@ a = {
 }
 # c = User(a,1)
 # c.print_info()
+

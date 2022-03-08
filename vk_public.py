@@ -1,8 +1,9 @@
-import sys
+import sys, time
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from user import User
 from config import *
+import json
 #
 
 def create_user(id: int, registration: bool) -> bool:
@@ -29,13 +30,10 @@ def get_info_about_user(id: int) -> dict:
 	fields = ['id', 'first_name', 'last_name', 'domain']
 	try:
 		for _ in fields: info[_] = vk.users.get(user_id = id)[0][_]
-
-		"""info['id'] = vk.users.get(user_id = id)[0]['id']
-		info['first_name'] = vk.users.get(user_id = id)[0]['first_name']
-		info['last_name'] = vk.users.get(user_id = id)[0]['last_name']"""
+		#print(json.dumps(info))
 		return info
 	except Exception as error:
-		print(error)
+		print('Def get_info_about_user', error)
 		return info
 
 
@@ -53,7 +51,6 @@ def bot_cycle():
 						send_message(event.user_id, 'Подпишись на группу!')		# будет проверять только если введено "начать", надо или сбрасывать кнопку, или чтобы приветствие всегда было первым сообщением
 				if event.user_id in admin_ids:			# убрал добавление не подписчика в базу
 					if text == 'exit()': sys.exit()
-
 
 
 if __name__ == "__main__":
