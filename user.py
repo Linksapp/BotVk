@@ -1,5 +1,8 @@
 import json
 #
+
+"""Переделать класс, создать модуль для записи информации в бд"""
+
 class User:
     """Default User Class"""
     def __init__(self, user_info: dict, registration: bool = False) -> None:
@@ -18,27 +21,22 @@ class User:
 
     def save_info(self):
         """При записи нового пользователя, очищает бд. Фикс it"""
-        with open('dumb_db.txt', 'w', encoding='UTF-8') as file:
+        with open('dumb_db.txt', 'a', encoding='UTF-8') as file:
             file.write(str(self.user_info) + '\n')
             return True
     
     def return_error(self): 
         if self.create == False: raise BaseException('Error! Dont get user_info like full dict')
-        else: pass
 
     def check_create(self) -> bool:
-        """Дописать функцию"""
+        """Переделать функцию"""
+
         with open('dumb_db.txt', 'r', encoding='UTF-8') as file:
-            if self.user_info in file:
-                return True
-            else:
-                self.save_info() # передовать все необходимые аргументы для сохранения
-                return True
+            return True
 
     def print_info(self):
         print(self.user_info,
-        sep = '\n'
-        )
+        sep = '\n')
 
 
 a = {
@@ -49,4 +47,3 @@ a = {
 }
 # c = User(a,1)
 # c.print_info()
-

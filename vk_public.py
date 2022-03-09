@@ -1,6 +1,7 @@
 import sys, time
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardButton
 from user import User
 from config import *
 import json
@@ -20,9 +21,12 @@ def registration(id: int) -> bool:
 	
 def send_message(id: int | list, text: str):
 	"""Отправляет сообщения"""
-	if isinstance(id, list):
-		for _ in id: vk.messages.send(user_id=_, random_id=0, message=str(text))
-	elif isinstance(id, int): vk.messages.send(user_id=id, random_id=0, message=str(text))
+	# Добавить аргументы принимающие кнопки
+	try:
+		if isinstance(id, list):
+			for _ in id: vk.messages.send(user_id=_, random_id=0, message=str(text))
+		elif isinstance(id, int): vk.messages.send(user_id=id, random_id=0, message=str(text))
+	except Exception as error: print(error)
 
 def get_info_about_user(id: int) -> dict:
 	"""Возвращает информацию о пользователе"""
