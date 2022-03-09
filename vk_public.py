@@ -19,7 +19,9 @@ def registration(id: int) -> bool:
 	members = vk.groups.getMembers(group_id=211021014)['items']
 	return id in members
 	
+
 def send_message(id: int | list, text: str, keyboard: dict = None):
+
 	"""Отправляет сообщения"""
 	# Добавить аргументы принимающие кнопки
 	try:
@@ -71,7 +73,6 @@ def bot_cycle():
 					# send_message(event.user_id, 'Вернулись', keyboard=keyboard)		# Клавиатура не пропадает, тк постоянно видит 'назад'
 					keyboard = create_empty_keyboard()
 					send_message(event.user_id, 'Вернулись', keyboard=keyboard)
-
 				if event.user_id in admin_ids:			# убрал добавление не подписчика в базу
 					if text == 'exit()': sys.exit()
 
