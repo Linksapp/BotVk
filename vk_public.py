@@ -1,16 +1,18 @@
 import sys, time
-import vk_api
+import vk_api, database
 from vk_api.longpoll import VkLongPoll, VkEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardButton, VkKeyboardColor
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from user import User
 from config import *
 import json
 #
+"""Переделать архитектуру записи и чтения данных"""
+
 
 def create_user(id: int, registration: bool) -> bool:
 	"""Создает пользователя"""
 	user = User(get_info_about_user(id), registration)
-	if user.check_create(): return True
+	if database.read_info(user.user_info): return True
 	else: return False
 
 def registration(id: int) -> bool:
@@ -18,10 +20,8 @@ def registration(id: int) -> bool:
 	global members
 	members = vk.groups.getMembers(group_id=211021014)['items']
 	return id in members
-	
 
 def send_message(id: int | list, text: str, keyboard: dict = None):
-
 	"""Отправляет сообщения"""
 	# Добавить аргументы принимающие кнопки
 	try:
