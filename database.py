@@ -10,6 +10,7 @@ a = {'users': []}
 def init_json() -> bool:
     try:
         with open(base_name, 'r') as file:
+            json.load(file)
             print(f'{base_name.upper()} Успешно инициализированна')
             return True
     except FileNotFoundError:
@@ -22,22 +23,27 @@ def init_json() -> bool:
         return False
 
 def get_info(id: int) -> dict | None:
-    data = read_json()
+    data: list = read_json()
     with open(base_name, 'r') as file:
         for _ in data:
             if id == _['id']: return _
             else: return None
 
 def save_info(user_info: dict = None) -> bool:
-    _json = read_json()
+    data: list = read_json()
     with open(base_name, 'w') as file:
-        _json.append(user_info)
-        a['users'] = _json
-        json.dump(a, file, indent=2)
-        return True
+        if user_info in data:
+            a['users'] = data
+            json.dump(a, file, indent=2)
+            return True
+        elif user_info not in data: 
+            data.append(user_info)
+            a['users'] = data
+            json.dump(a, file, indent=2)
+            return True
 
 def read_info(user_info: dict = None) -> bool:
-    data = read_json()
+    data: list = read_json()
     with open(base_name, 'r') as file:
         for _ in data:
             if user_info == _: return True
