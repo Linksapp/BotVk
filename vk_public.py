@@ -2,18 +2,17 @@ import sys, time
 from turtle import color
 import vk_api, database
 from vk_api.longpoll import VkLongPoll, VkEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
-from user import User
+from vk_api.keyboard import VkKeyboard
 from config import *
-import json
+
 
 """Переделать архитектуру записи и чтения данных"""
 
 
-def create_user(id: int, registration: bool) -> bool:
+def create_user(id: int) -> bool:
 	"""Создает пользователя"""
-	user = User(get_info_about_user(id), registration)
-	if database.read_info(user.user_info): return True
+	user: dict = get_info_about_user(id)
+	if database.save_info(user): return True
 	else: return False
 
 def registration(id: int) -> bool:
@@ -37,10 +36,9 @@ def get_info_about_user(id: int) -> dict:
 	fields = ['id', 'first_name', 'last_name', 'domain']
 	try:
 		for _ in fields: info[_] = vk.users.get(user_id = id)[0][_]
-		#print(json.dumps(info))
 		return info
 	except Exception as error:
-		print('Def get_info_about_user', error)
+		#print('Def get_info_about_user', error)
 		return info
 
 def create_empty_keyboard(one_time: bool = False):
@@ -77,7 +75,7 @@ def bot_cycle():
 				if text == 'начать':
 					if registration(event.user_id): 
 						send_message(event.user_id,'Hello', keyboard=create_main_keyboard())	
-						create_user(event.user_id, True)		# второй раз проверяет регистрацию
+						create_user(event.user_id)		# второй раз проверяет регистрацию
 					elif registration(event.user_id) == False: 
 						send_message(event.user_id, 'Подпишись на группу!', keyboard=create_start_keyboard())
 				if registration(event.user_id) and text == 'меню 2':

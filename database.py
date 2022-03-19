@@ -1,35 +1,48 @@
+from email.mime import base
 import json
+from config import base_name
 
-# Сделать json file
+# json не подходит для хранения данных, нагружает память при записи из-за того что нельзя дополнять его
+# либо хранить данные в json без сортировки
+a = {'users': []}
 
-base = 'dumb_db.txt'
 
-def get_info(id: int) -> dict | str:
+def init_json() -> bool:
     try:
-        with open(base, 'r', encoding='UTF-8') as file:
-            for _ in file.readlines():
-                if str(id) in _: 
-                    return _
+        with open(base_name, 'r') as file:
+            return True
+    except FileNotFoundError:
+        with open(base_name, 'w') as file:
+            json.dump(a, file, indent=2)
+            return True
+    except Exception: return False
 
-    except FileNotFoundError as error: 
-        with open(base, 'w', encoding='UTF-8') as file:
-            print('None')
-            return {}
+def get_info(id: int) -> dict | None:
+    data = read_json()
+    with open(base_name, 'r') as file:
+        for _ in data:
+            if id == _['id']: return _
+            else: return None
 
-def save_info(user_info: dict) -> bool:
-    with open(base, 'a', encoding='UTF-8') as file:
-        file.write(str(user_info) + '\n')
+def save_info(user_info: dict = None) -> bool:
+    _json = read_json()
+    with open(base_name, 'w') as file:
+        _json.append(user_info)
+        a['users'] = _json
+        json.dump(a, file, indent=2)
         return True
 
-def read_info(user_info: dict) -> bool:
-    try:
-        with open(base, 'r', encoding='UTF-8') as file:
-            for i in file.readlines(): 
-                if str(user_info) in i: return True
-        return False
-    except FileNotFoundError as error: 
-        with open(base, 'w', encoding='UTF-8') as file:
-            file.write(str(user_info) + '\n')
-        return True
+def read_info(user_info: dict = None) -> bool:
+    data = read_json()
+    with open(base_name, 'r') as file:
+        for _ in data:
+            if user_info == _: return True
+            else: return False
 
-print(get_info(376919311))
+
+def read_json() -> list:
+    with open(base_name, 'r') as file:
+        #print(json.load(file)['users'])
+        return json.load(file)['users']
+
+print(get_info(37691931))
