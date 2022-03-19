@@ -10,10 +10,12 @@ a = {'users': []}
 def init_json() -> bool:
     try:
         with open(base_name, 'r') as file:
+            print(f'{base_name} Успешно инициализированна')
             return True
     except FileNotFoundError:
         with open(base_name, 'w') as file:
             json.dump(a, file, indent=2)
+            print(f'Файл {base_name} был заного создан')
             return True
     except Exception: return False
 

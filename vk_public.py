@@ -91,6 +91,7 @@ def bot_cycle():
 if __name__ == "__main__":
 	session = vk_api.VkApi(token=token)
 	vk = session.get_api()
+	database.init_json()
 
 	longpoll = VkLongPoll(session, group_id=group_id)
 	bot_cycle()
