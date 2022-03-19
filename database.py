@@ -10,14 +10,16 @@ a = {'users': []}
 def init_json() -> bool:
     try:
         with open(base_name, 'r') as file:
-            print(f'{base_name} Успешно инициализированна')
+            print(f'{base_name.upper()} Успешно инициализированна')
             return True
     except FileNotFoundError:
         with open(base_name, 'w') as file:
             json.dump(a, file, indent=2)
-            print(f'Файл {base_name} был заного создан')
+            print(f'Файл {base_name.upper()} был заного создан')
             return True
-    except Exception: return False
+    except Exception as error: 
+        print(error)
+        return False
 
 def get_info(id: int) -> dict | None:
     data = read_json()
@@ -46,5 +48,3 @@ def read_json() -> list:
     with open(base_name, 'r') as file:
         #print(json.load(file)['users'])
         return json.load(file)['users']
-
-print(get_info(37691931))
