@@ -1,3 +1,4 @@
+from operator import le
 import sys
 import vk_api, database
 from vk_api.longpoll import VkLongPoll, VkEventType
@@ -21,10 +22,13 @@ def registration(id: int) -> bool:
 
 def send_message(id: int, text: str, keyboard: dict = None) -> None:
 	"""Отправляет сообщения"""
-	# Добавить аргументы принимающие кнопки
 	try:
-		if keyboard == None: vk.messages.send(user_id = id, message = str(text), random_id = 0)
-		else: vk.messages.send(user_id = id, message = str(text), random_id = 0, keyboard = keyboard)
+		vk.messages.send(user_id = id, message = str(text), random_id = 0, keyboard = keyboard)
+	except Exception as error: print(error)
+
+def send_photo(id: int, owner_id: str = '-211021014', media_id = '457239017', keyboard: dict = None ):
+	try:
+		vk.messages.send(user_id = id, attachment = 'photo' + owner_id + '_' + media_id, random_id = 0, keyboard=keyboard)
 	except Exception as error: print(error)
 
 def get_info_about_user(id: int) -> dict:
@@ -39,13 +43,14 @@ def get_info_about_user(id: int) -> dict:
 		return info
 
 def create_empty_keyboard(one_time: bool = True):
+	"""Создаёт пустую клавиатуру"""
 	keyboard = VkKeyboard(one_time=one_time)
 	return keyboard.get_empty_keyboard()
 
 def create_main_keyboard(one_time: bool = True):
+	'''Создаёт главную клавиатуру'''
 	color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary', 'белый': 'secondary'}
 	keyboard = VkKeyboard(one_time=one_time)
-
 	keyboard.add_button('Красная', color='negative')
 	keyboard.add_button('Зелёная', color='positive')
 	keyboard.add_button('Синяя', color='primary')
@@ -55,12 +60,14 @@ def create_main_keyboard(one_time: bool = True):
 	return keyboard.get_keyboard()
 
 def create_menu2_keyboard(one_time: bool = True):
+	'''Создаёт клавиатуру (Меню 2)'''
 	keyboard = VkKeyboard(one_time=one_time)
 	keyboard.add_button('Фото', color='negative')
 	keyboard.add_button('Назад')
 	return keyboard.get_keyboard()
 
 def create_start_keyboard(one_time: bool = True):
+	'''Создаёт начальную клавиатуру'''
 	keyboard = VkKeyboard(one_time=one_time)
 	keyboard.add_button('Начать', color='primary')
 	return keyboard.get_keyboard()
@@ -75,16 +82,28 @@ def bot_cycle():
 			if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 				text: str = event.text.lower()
 				if text == 'начать' and registration(event.user_id): 
-					send_message(event.user_id,'Hello', keyboard=create_main_keyboard())	
-					create_user(event.user_id)		# второй раз проверяет регистрацию
+					if create_main_keyboard not in history: history.append(create_main_keyboard)
+					send_message(event.user_id,'Hello', keyboard=history[-1]())	
+					create_user(event.user_id)		
+					
 				elif text == 'начать' and registration(event.user_id) == False: 
 					send_message(event.user_id, 'Подпишись на группу!', keyboard=create_start_keyboard())
-				if registration(event.user_id) and text == 'меню 2':
-					send_message(event.user_id, 'Меню номер 2', keyboard=create_menu2_keyboard())
-				if text == 'назад':
-					send_message(event.user_id, 'ххххх')		# не работает. Надо понять как работать в пределах одной менюшки, чтобы нельзя было вызвать что-нибудь из других (например получить реакцию на 'начать' из 'меню2')
+				
+				if text == 'меню 2' and registration(event.user_id) and len(history) == 1:
+					if create_menu2_keyboard not in history: history.append(create_menu2_keyboard)
+					send_message(event.user_id, 'Меню номер 2', keyboard=history[-1]())
+
+				if text == 'назад' and len(history) > 1:		# )))))))
+					history.pop()
+					send_message(event.user_id,'Hello', keyboard=history[-1]())
+				
+				if text == 'фото' and len(history) > 1:
+					send_photo(event.user_id, keyboard=history[-1]())
+
 				if event.user_id in admin_ids:		
 					if text == 'exit()': sys.exit()
+
+				# Сделать ответ на не команды
 
 
 
