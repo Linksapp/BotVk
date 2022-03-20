@@ -38,15 +38,13 @@ def get_info_about_user(id: int) -> dict:
 		#print('Def get_info_about_user', error)
 		return info
 
-def create_empty_keyboard(one_time: bool = False):
+def create_empty_keyboard(one_time: bool = True):
 	keyboard = VkKeyboard(one_time=one_time)
 	return keyboard.get_empty_keyboard()
 
-def create_main_keyboard(one_time: bool = False):
+def create_main_keyboard(one_time: bool = True):
 	color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary', 'белый': 'secondary'}
 	keyboard = VkKeyboard(one_time=one_time)
-
-
 
 	keyboard.add_button('Красная', color='negative')
 	keyboard.add_button('Зелёная', color='positive')
@@ -56,13 +54,13 @@ def create_main_keyboard(one_time: bool = False):
 	keyboard.add_button('Меню 2')		
 	return keyboard.get_keyboard()
 
-def create_menu2_keyboard(one_time: bool = False):
+def create_menu2_keyboard(one_time: bool = True):
 	keyboard = VkKeyboard(one_time=one_time)
 	keyboard.add_button('Фото', color='negative')
 	keyboard.add_button('Назад')
 	return keyboard.get_keyboard()
 
-def create_start_keyboard(one_time: bool = False):
+def create_start_keyboard(one_time: bool = True):
 	keyboard = VkKeyboard(one_time=one_time)
 	keyboard.add_button('Начать', color='primary')
 	return keyboard.get_keyboard()
