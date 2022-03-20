@@ -1,4 +1,3 @@
-from operator import le
 import sys
 import vk_api, database
 from vk_api.longpoll import VkLongPoll, VkEventType
