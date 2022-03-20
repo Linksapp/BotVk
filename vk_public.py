@@ -67,10 +67,13 @@ def create_start_keyboard(one_time: bool = True):
 
 def bot_cycle():
 	"""Longpoll цикл бота"""
+
+	history: list = [] # для хранения истории перехода между меню
+
 	while True:
 		for event in longpoll.listen():
 			if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-				text = event.text.lower()
+				text: str = event.text.lower()
 				if text == 'начать' and registration(event.user_id): 
 					send_message(event.user_id,'Hello', keyboard=create_main_keyboard())	
 					create_user(event.user_id)		# второй раз проверяет регистрацию
