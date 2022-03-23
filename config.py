@@ -1,4 +1,4 @@
 token = '5f4851e6030f4d498493b024950c837cf1ce8ed6a5c21eef1ec235e877578a654480b58918442f4682388'
 admin_ids = [208156464, 376919311]
 group_id = 211021014
-base_name = 'dumb_db.json'
+base_name = 'data_base.db'

@@ -40,7 +40,7 @@ def get_info_about_user(id: int) -> dict:
 	except Exception as error:
 		#print('Def get_info_about_user', error)
 		return info
-
+	
 def create_empty_keyboard(one_time: bool = True):
 	"""Создаёт пустую клавиатуру"""
 	keyboard = VkKeyboard(one_time=one_time)
@@ -110,7 +110,7 @@ def bot_cycle():
 if __name__ == "__main__":
 	session = vk_api.VkApi(token=token)
 	vk = session.get_api()
-	database.init_json()
+	database.init()
 
 	longpoll = VkLongPoll(session, group_id=group_id)
 	bot_cycle()

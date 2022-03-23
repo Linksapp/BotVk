@@ -1,56 +1,37 @@
-from email.mime import base
-import json
+import sqlite3 as sql
 from config import base_name
 
-# json не подходит для хранения данных, нагружает память при записи из-за того что нельзя дополнять его
-# либо хранить данные в json без сортировки
-a = {'users': []}
+# изменить файловую структуру, сделать __init__.py
+# close()
 
-
-def init_json() -> bool:
+def init() -> bool: 
+    global connector, cursor
     try:
-        with open(base_name, 'r') as file:
-            json.load(file)
-            print(f'{base_name.upper()} Успешно инициализированна')
-            return True
-    except FileNotFoundError:
-        with open(base_name, 'w') as file:
-            json.dump(a, file, indent=2)
-            print(f'Файл {base_name.upper()} был заного создан')
-            return True
-    except Exception as error: 
-        print(error)
+        connector = sql.connect(f'{base_name}')
+        cursor = connector.execute("""CREATE TABLE IF NOT EXISTS users(
+            count INT PRIMARY KEY,
+            id INT,
+            first_name VARCHAR,
+            last_name VARCHAR,
+        )""")
+        print(f'\033[32m Инициализация файла {base_name} прошла успешно! \033[37m')
+        return True
+    except Exception as error:
+        print(f'\033[31m{error}\033[37m')
         return False
 
-def get_info(id: int) -> dict | None:
-    data: list = read_json()
-    with open(base_name, 'r') as file:
-        for _ in data:
-            if id == _['id']: return _
-            else: return None
 
-def save_info(user_info: dict = None) -> bool:
-    data: list = read_json()
-    with open(base_name, 'w') as file:
-        if user_info in data:
-            a['users'] = data
-            json.dump(a, file, indent=2)
-            return True
-        elif user_info not in data: 
-            data.append(user_info)
-            a['users'] = data
-            json.dump(a, file, indent=2)
-            return True
-
-def read_info(user_info: dict = None) -> bool:
-    data: list = read_json()
-    with open(base_name, 'r') as file:
-        for _ in data:
-            if user_info == _: return True
-            else: return False
+def get_info(id: int = None, first_name: str = None, last_name: str = None) -> dict: 
+    # доделать позже, сделать *args **kwargs
+    cursor.execute("""SELECT first_name FROM users WHERE last_name == 'Дрожжев' """)
 
 
-def read_json() -> list:
-    with open(base_name, 'r') as file:
-        #print(json.load(file)['users'])
-        return json.load(file)['users']
+def save_info(user_info: dict) -> bool:
+    try:
+        cursor.execute(f"""INSERT INTO users(id, first_name, last_name) VALUES(?, ?, ?)""", [user_info["id"], user_info["first_name"], user_info["last_name"]])
+        connector.commit()
+        return True
+    except Exception as error:
+        return False
+
+def check_info() -> bool: pass
