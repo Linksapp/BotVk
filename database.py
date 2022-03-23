@@ -8,11 +8,11 @@ def init() -> bool:
     global connector, cursor
     try:
         connector = sql.connect(f'{base_name}')
-        cursor = connector.execute("""CREATE TABLE IF NOT EXISTS users(
+        cursor = connector.execute("""CREATE TABLE IF NOT EXISTS users (
             count INT PRIMARY KEY,
             id INT,
             first_name VARCHAR,
-            last_name VARCHAR,
+            last_name VARCHAR
         )""")
         print(f'\033[32m Инициализация файла {base_name} прошла успешно! \033[37m')
         return True
