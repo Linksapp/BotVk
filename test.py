@@ -11,14 +11,19 @@ def a():
             print(True, cursor.fetchone()[0])
         else: print(0, cursor.fetchone())
 
-    
-if os.path.isfile('data_base.db'): print( True)
+
 con = sql.connect('data_base.db')
 c = con.cursor()
+
+c = con.execute("""CREATE TABLE IF NOT EXISTS users (
+                count       INT PRIMARY KEY NOT NULL,
+                id          INT,
+                first_name  VARCHAR,
+                last_name   VARCHAR
+                )""")
 
 inf = c.execute(""" SELECT id FROM users WHERE id==?""", (376919311,))
 
 
-for i in inf:
-    if 376919311 in i:
-        print(1)
+print(c.fetchone() != None)
+print(c.fetchone())

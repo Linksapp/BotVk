@@ -4,6 +4,14 @@ from config import base_name
 
 # изменить файловую структуру, сделать __init__.py
 
+def sql_(func):
+    def sql_execute(func):
+        # ----
+        func()
+        # ----
+    return sql_execute
+
+
 def init() -> bool: 
     global connector, cursor
 
@@ -12,10 +20,10 @@ def init() -> bool:
 
     with sql.connect(f'{base_name}') as connector:
         cursor = connector.execute("""CREATE TABLE IF NOT EXISTS users (
-                count INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-                id INT,
-                first_name VARCHAR,
-                last_name VARCHAR
+                count       INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT 0,
+                id          INT NOT NULL DEFAULT 0,
+                first_name  VARCHAR,
+                last_name   VARCHAR
                 )""")
 
     if isTrue == False: print(f'\033[33m Файл {base_name} был заново создан, инициализация прошла успешно! \033[37m')
@@ -30,7 +38,8 @@ def get_info(id: int = None, first_name: str = None, last_name: str = None) -> d
 
 def save_info(user_info: dict) -> bool:
     cursor.execute("""SELECT id FROM users WHERE id == ? """, (user_info["id"],))
-    if user_info["id"] not in cursor.fetchone(): 
+    _one = cursor.fetchone()
+    if _one == None or user_info["id"] not in _one:
         cursor.execute(f"""INSERT INTO users(id, first_name, last_name) VALUES(?, ?, ?)""", [user_info["id"], user_info["first_name"], user_info["last_name"]])
         connector.commit()
         return True

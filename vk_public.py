@@ -10,8 +10,8 @@ from config import *
 
 def create_user(id: int) -> None:
 	"""Создает пользователя"""
-	user: dict = get_info_about_user(id)
-	database.save_info(user)
+	if database.save_info(get_info_about_user(id)): print(True)
+	else: print(False)
 
 def registration(id: int) -> bool:
 	"""Проверяет подписку"""
