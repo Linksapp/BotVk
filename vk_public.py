@@ -6,39 +6,37 @@ from config import *
 
 
 """Переделать архитектуру записи и чтения данных"""
-
+'''Функция для подписки'''
 
 def create_user(id: int) -> None:
 	"""Создает пользователя"""
-	if database.save_info(get_info_about_user(id)): print(True)
-	else: print(False)
+	database.save_info(get_info_about_user(id))
 
 def registration(id: int) -> bool:
 	"""Проверяет подписку"""
-	global members
 	members = vk.groups.getMembers(group_id=211021014)['items']
 	return id in members
 
-def send_message(id: int, text: str, keyboard: dict = None) -> None:
+def send_message(id: int, text: str = None, keyboard: dict = None, owner_id: str = '-211021014', 
+				media_id: str = '457239017', attachment: str = None) -> None:
 	"""Отправляет сообщения"""
-	try:
-		vk.messages.send(user_id = id, message = str(text), random_id = 0, keyboard = keyboard)
-	except Exception as error: print(error)
-
-def send_photo(id: int, owner_id: str = '-211021014', media_id = '457239017', keyboard: dict = None ):
-	try:
-		vk.messages.send(user_id = id, attachment = 'photo' + owner_id + '_' + media_id, random_id = 0, keyboard=keyboard)
-	except Exception as error: print(error)
+	if attachment == 'photo':
+		try:
+			vk.messages.send(user_id = id, attachment = attachment + owner_id + '_' + media_id, random_id = 0, keyboard=keyboard)
+		except Exception as error: print(error)
+	else:
+		try:
+			vk.messages.send(user_id = id, message = str(text), random_id = 0, keyboard = keyboard)
+		except Exception as error: print(error)
 
 def get_info_about_user(id: int) -> dict:
 	"""Возвращает информацию о пользователе"""
 	info = {}
-	fields = ['id', 'first_name', 'last_name', 'domain']
+	fields = ['id', 'first_name', 'last_name']
 	try:
 		for _ in fields: info[_] = vk.users.get(user_id = id)[0][_]
 		return info
 	except Exception as error:
-		#print('Def get_info_about_user', error)
 		return info
 	
 def create_empty_keyboard(one_time: bool = True):
@@ -55,7 +53,7 @@ def create_main_keyboard(one_time: bool = True):
 	keyboard.add_button('Синяя', color='primary')
 	keyboard.add_button('Белая', color='secondary')
 	keyboard.add_line()
-	keyboard.add_button('Меню 2')		
+	keyboard.add_button('Меню 2')	
 	return keyboard.get_keyboard()
 
 def create_menu2_keyboard(one_time: bool = True):
@@ -92,12 +90,12 @@ def bot_cycle():
 					if create_menu2_keyboard not in history: history.append(create_menu2_keyboard)
 					send_message(event.user_id, 'Меню номер 2', keyboard=history[-1]())
 
-				if text == 'назад' and len(history) > 1:		# )))))))
+				if text == 'назад' and len(history) > 1:		
 					history.pop()
 					send_message(event.user_id,'Hello', keyboard=history[-1]())
 				
 				if text == 'фото' and len(history) > 1:
-					send_photo(event.user_id, keyboard=history[-1]())
+					send_message(event.user_id, attachment='photo', keyboard=history[-1]())
 
 				if event.user_id in admin_ids:		
 					if text == 'exit()': sys.exit()
