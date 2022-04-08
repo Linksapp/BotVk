@@ -1,5 +1,6 @@
 import sys
-import vk_api, database
+import vk_api
+from database import DataBase
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard
 from config import *
@@ -36,12 +37,19 @@ def get_info_about_user(id: int) -> dict:
 	try:
 		for _ in fields: info[_] = vk.users.get(user_id = id)[0][_]
 		return info
-	except Exception as error:
-		return info
-	
-def create_empty_keyboard(one_time: bool = True):
+	except Exception as error: return info
+
+
+def keyboard(func): 
+	def create_(one_time: bool = True):
+		keyboard = VkKeyboard(one_time = one_time)
+		func(keyboard)
+
+	return create_
+
+@keyboard
+def create_empty_keyboard(keyboard):
 	"""Создаёт пустую клавиатуру"""
-	keyboard = VkKeyboard(one_time=one_time)
 	return keyboard.get_empty_keyboard()
 
 def create_main_keyboard(one_time: bool = True):
@@ -70,7 +78,10 @@ def create_start_keyboard(one_time: bool = True):
 	return keyboard.get_keyboard()
 
 def bot_cycle():
+	keyboards: dict = {'main_menu': create_main_keyboard}
 	"""Longpoll цикл бота"""
+
+	""" В database добавлена функция get_history вместо history для получения информации по кнопкам"""
 
 	history: list = [] # для хранения истории перехода между меню
 
@@ -78,10 +89,12 @@ def bot_cycle():
 		for event in longpoll.listen():
 			if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 				text: str = event.text.lower()
-				if text == 'начать' and registration(event.user_id): 
+				if text == 'начать' and registration(event.user_id):
+					if 'main_menu' not in database.get_history(event.user_id): database.change_history(event.user_id, 'main_menu')
+
 					if create_main_keyboard not in history: history.append(create_main_keyboard)
-					send_message(event.user_id,'Hello', keyboard=history[-1]())	
-					create_user(event.user_id)		
+					send_message(event.user_id,'Hello', keyboard=keyboards['main_menu']())	
+					create_user(event.user_id)
 					
 				elif text == 'начать' and registration(event.user_id) == False: 
 					send_message(event.user_id, 'Подпишись на группу!', keyboard=create_start_keyboard())
@@ -108,7 +121,7 @@ def bot_cycle():
 if __name__ == "__main__":
 	session = vk_api.VkApi(token=token)
 	vk = session.get_api()
-	database.init()
+	database = DataBase()
 
 	longpoll = VkLongPoll(session, group_id=group_id)
 	bot_cycle()
