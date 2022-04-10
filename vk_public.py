@@ -40,80 +40,81 @@ def get_info_about_user(id: int) -> dict:
 	except Exception as error: return info
 
 
+""" В голове выглядело как крутая идея, на деле написал хуйню, переписать"""
+
 def keyboard(func): 
-	def create_(one_time: bool = True):
+	"""Декоратор для создания клавиатуры"""
+	def create_(label: str = None, one_time: bool = True) -> str:
 		keyboard = VkKeyboard(one_time = one_time)
-		func(keyboard)
+		response: dict = func(label)
+
+		if response == {}: keyboard.get_empty_keyboard()
+		else:
+			for i in response:
+				if response.get(i) == None: keyboard.add_line()
+				else: keyboard.add_button(i, response.get(i))
+
+		return keyboard.get_keyboard()
 
 	return create_
 
 @keyboard
-def create_empty_keyboard(keyboard):
-	"""Создаёт пустую клавиатуру"""
-	return keyboard.get_empty_keyboard()
+def take_keyboard(label: str) -> dict:
+	#color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary', 'белый': 'secondary'}
+	# Buttons
+	start = {'Начать': 'positive'}
 
-def create_main_keyboard(one_time: bool = True):
-	'''Создаёт главную клавиатуру'''
-	color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary', 'белый': 'secondary'}
-	keyboard = VkKeyboard(one_time=one_time)
-	keyboard.add_button('Красная', color='negative')
-	keyboard.add_button('Зелёная', color='positive')
-	keyboard.add_button('Синяя', color='primary')
-	keyboard.add_button('Белая', color='secondary')
-	keyboard.add_line()
-	keyboard.add_button('Меню 2')	
-	return keyboard.get_keyboard()
+	menu_2 = {
+		'Фото': 'negative',
+		'Назад': 'secondary'
+	}
 
-def create_menu2_keyboard(one_time: bool = True):
-	'''Создаёт клавиатуру (Меню 2)'''
-	keyboard = VkKeyboard(one_time=one_time)
-	keyboard.add_button('Фото', color='negative')
-	keyboard.add_button('Назад')
-	return keyboard.get_keyboard()
+	main_keyboard = {
+		'Красная': 'negative', 
+		'Зеленая': 'positive', 
+		'Синяя': 'primary', 
+		'Белая': 'secondary', 
+		'': None,
+		'Меню 2': 'secondary'
+	}
 
-def create_start_keyboard(one_time: bool = True):
-	'''Создаёт начальную клавиатуру'''
-	keyboard = VkKeyboard(one_time=one_time)
-	keyboard.add_button('Начать', color='primary')
-	return keyboard.get_keyboard()
+	if label == 'начать': return start
+	elif label == 'меню': return main_keyboard
+	elif label == 'меню2': return menu_2
+	else: return {}
+
+
 
 def bot_cycle():
-	keyboards: dict = {'main_menu': create_main_keyboard}
 	"""Longpoll цикл бота"""
 
 	""" В database добавлена функция get_history вместо history для получения информации по кнопкам"""
-
-	history: list = [] # для хранения истории перехода между меню
 
 	while True:
 		for event in longpoll.listen():
 			if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 				text: str = event.text.lower()
 				if text == 'начать' and registration(event.user_id):
-					if 'main_menu' not in database.get_history(event.user_id): database.change_history(event.user_id, 'main_menu')
-
-					if create_main_keyboard not in history: history.append(create_main_keyboard)
-					send_message(event.user_id,'Hello', keyboard=keyboards['main_menu']())	
+					#if 'main_menu' not in database.get_history(event.user_id): database.change_history(event.user_id, 'main_menu')
+					send_message(event.user_id,'Hello', take_keyboard('меню'))	
 					create_user(event.user_id)
 					
 				elif text == 'начать' and registration(event.user_id) == False: 
-					send_message(event.user_id, 'Подпишись на группу!', keyboard=create_start_keyboard())
+					send_message(event.user_id, 'Подпишись на группу!',  take_keyboard('начать'))
 				
-				if text == 'меню 2' and registration(event.user_id) and len(history) == 1:
-					if create_menu2_keyboard not in history: history.append(create_menu2_keyboard)
-					send_message(event.user_id, 'Меню номер 2', keyboard=history[-1]())
+				if text == 'меню 2' and registration(event.user_id):
+					send_message(event.user_id, 'Меню номер 2', take_keyboard('меню2'))
 
-				if text == 'назад' and len(history) > 1:		
-					history.pop()
-					send_message(event.user_id,'Hello', keyboard=history[-1]())
+				if text == 'назад':		
+					send_message(event.user_id, 'Hello')
 				
-				if text == 'фото' and len(history) > 1:
-					send_message(event.user_id, attachment='photo', keyboard=history[-1]())
+				if text == 'фото':
+					send_message(event.user_id, attachment='photo')
 
 				if event.user_id in admin_ids:		
 					if text == 'exit()': sys.exit()
 
-				# Сделать ответ на не команды
+				# Сделать ответ на не команды 
 
 
 

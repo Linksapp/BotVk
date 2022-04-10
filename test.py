@@ -1,13 +1,23 @@
-
+import time
 
 def main(func):
-    def a():
+    def a(one_time=False):
         print(0)
-        func(c= 0)
+        func(one_time)
         print(0)
+        return []
     return a
 
 @main
-def c(c): print(1)
+def c(c = None): print(c)
 
-c()
+main_menu = {
+		'Красная': 'negative', 
+		'Зеленая': 'positive', 
+		'Синяя': 'primary', 
+		'Белая': 'secondary', 
+		'': None,
+		'Меню 2': 'secondary'
+	}
+
+c(1)
