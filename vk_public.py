@@ -1,5 +1,6 @@
 import sys
 import vk_api
+import time
 from database import DataBase
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard
@@ -9,14 +10,23 @@ from config import *
 """Переделать архитектуру записи и чтения данных"""
 '''Функция для подписки'''
 
+def test_time(func):
+	def test(a=None):
+		start = time.time()
+		func(a)
+		finish = time.time()
+		print(finish - start)
+	return test
+
 def create_user(id: int) -> None:
 	"""Создает пользователя"""
 	database.save_info(get_info_about_user(id))
 
 def registration(id: int) -> bool:
 	"""Проверяет подписку"""
-	members = vk.groups.getMembers(group_id=211021014)['items']
-	return id in members
+	# использовать метод isMembers
+	member: bool = vk.groups.isMember(group_id=group_id, user_id = id)
+	return member
 
 def send_message(id: int, text: str = None, keyboard: dict = None, owner_id: str = '-211021014', 
 				media_id: str = '457239017', attachment: str = None) -> None:
@@ -34,10 +44,10 @@ def get_info_about_user(id: int) -> dict:
 	"""Возвращает информацию о пользователе"""
 	info = {}
 	fields = ['id', 'first_name', 'last_name']
-	try:
+	try: 
 		for _ in fields: info[_] = vk.users.get(user_id = id)[0][_]
-		return info
-	except Exception as error: return info
+	except Exception as error: print(error)
+	return info
 
 
 """ В голове выглядело как крутая идея, на деле написал хуйню, переписать"""
