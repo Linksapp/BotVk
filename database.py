@@ -13,6 +13,13 @@ def sql_(func):
     return sql_execute
 
 
+"""
+Запись истории в дб будет осуществлена следующим образомЖ
+'/menu/menu2/photo' чтобы отслеживать перемешение пользователя по клавиатурам
+"""
+
+
+
 class DataBase:
     def __init__(self):
         self.base_name = base_name
@@ -35,16 +42,29 @@ class DataBase:
             self.connector.commit()
 
 
-    def get_info(self, *args) -> dict: 
+    def get_info(self, *args, **kwargs) -> dict: 
         # доделать позже, сделать *args **kwargs
         self.cursor.execute(f"""SELECT {args} FROM users WHERE  """)
 
-    def get_history(self, id: int == None) -> list:
+    def get_history(self, id: int, catalog: str) -> str:
         self.cursor.execute(""" SELECT history FROM users WHERE id == ? """, (id,))
-        return self.cursor.fetchone()
+        return self.cursor.fetchone()[0]
 
-    def change_history(self, id: int, pos: str) -> None:
-        self.cursor.execute(""" INSERT INTO users(history, ) VALUES(?,)""", (str(pos), ))
+    def change_history(self, id: int, catalog: str = '', flag: bool = True) -> None:
+        
+        if catalog == '/menu' and flag: self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
+        elif catalog == '/menu' and flag == False: 
+            catalog = self.get_history(id)
+            catalog = catalog[:catalog.rfind('/')]
+            self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
+        elif catalog == '/manu2' and flag: 
+            catalog = self.get_history() + catalog
+            self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
+        elif flag == False:
+            catalog = self.get_history(id)
+            catalog = catalog[: catalog.rfind('/')]
+            self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
+
         self.connector.commit()
 
     def save_info(self, user_info: dict) -> None:
@@ -52,7 +72,7 @@ class DataBase:
         self.cursor.execute("""SELECT id FROM users WHERE id == ? """, (user_info["id"],))
         _one = self.cursor.fetchone()
         if _one == None or user_info["id"] not in _one: 
-            self.cursor.execute(f"""INSERT INTO users(id, first_name, last_name, registration) VALUES(?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], 0))
+            self.cursor.execute("""INSERT INTO users(id, first_name, last_name, registration) VALUES(?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], 0))
             self.connector.commit()
 
 

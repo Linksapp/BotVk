@@ -1,4 +1,6 @@
 import time
+import sqlite3 as sql
+from config import base_name
 
 def main(func):
     def a(one_time=False):
@@ -20,4 +22,31 @@ main_menu = {
 		'Меню 2': 'secondary'
 	}
 
-c(1)
+history = '/menu/menu2/photo'
+"""history = history[: history.rfind('/')]
+history = history[: history.rfind('/')]
+print(history[: history.rfind('/')])"""
+
+
+def change():
+	id = 376919311
+
+	with sql.connect(base_name) as file:
+		cursor = file.execute("""CREATE TABLE IF NOT EXISTS users(
+                id           INT DEFAULT 0,
+                first_name   VARCHAR,
+                last_name    VARCHAR,
+                history      VARCHAR,
+                registration BOOLEAN DEFAULT 0
+                )""")
+		
+		cursor.execute(""" SELECT history FROM users WHERE id == ? """, (id,))
+		
+		_catalog: str = cursor.fetchone()[0]
+		_catalog = _catalog[: _catalog.rfind('/')]
+
+		cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (_catalog, id))
+		
+		file.commit()
+
+change()
