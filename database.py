@@ -46,7 +46,7 @@ class DataBase:
         # доделать позже, сделать *args **kwargs
         self.cursor.execute(f"""SELECT {args} FROM users WHERE  """)
 
-    def get_history(self, id: int, catalog: str) -> str:
+    def get_history(self, id: int) -> str:
         self.cursor.execute(""" SELECT history FROM users WHERE id == ? """, (id,))
         return self.cursor.fetchone()[0]
 
@@ -72,7 +72,7 @@ class DataBase:
         self.cursor.execute("""SELECT id FROM users WHERE id == ? """, (user_info["id"],))
         _one = self.cursor.fetchone()
         if _one == None or user_info["id"] not in _one: 
-            self.cursor.execute("""INSERT INTO users(id, first_name, last_name, registration) VALUES(?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], 0))
+            self.cursor.execute("""INSERT INTO users(id, first_name, last_name, registration) VALUES(?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], True))
             self.connector.commit()
 
 

@@ -1,6 +1,6 @@
-import sys
+from cProfile import label
+import sys, time
 import vk_api
-import time
 from database import DataBase
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard
@@ -18,19 +18,33 @@ def test_time(func):
 		print(finish - start)
 	return test
 
+def keyboard(func): 
+	"""Декоратор для создания клавиатуры"""
+	def create_(hz, label: str, one_time: bool = True) -> str:
+		"""hz я хз что это, просто костыль. Почему-то предается какой-то объект класса <__main__.VkBot object at 0x00000174B977B8E0> по этому вот так вот. 
+		Скорее всего это self которая есть у каждого метода класса, придумать как от него избавиться"""
+		keyboard = VkKeyboard(one_time = one_time)
+		response: dict = func(label)
+
+		if response == {}: keyboard.get_empty_keyboard()
+		else:
+			for i in response:
+				if response.get(i) == None: keyboard.add_line()
+				else: keyboard.add_button(i, response.get(i))
+
+		return keyboard.get_keyboard()
+	return create_
+
 
 class VkBot:
 	def __init__(self):
-		self.session = vk_api.VkApi(token=token)
+		self.session = vk_api.VkApi(token = token)
 		self.vk = self.session.get_api()
 		self.database = DataBase()
 
-		self.longpoll = VkLongPoll(self.session, group_id=group_id)
+		self.longpoll = VkLongPoll(self.session, group_id = group_id)
 
 
-	def create_user(self, id: int) -> None:
-		"""Создает пользователя"""
-		self.database.save_info(self.get_info_about_user(id))
 
 	def registration(self, id: int) -> bool:
 		"""Проверяет подписку"""
@@ -58,26 +72,8 @@ class VkBot:
 		return info
 
 
-	""" В голове выглядело как крутая идея, на деле написал хуйню, переписать"""
-
-	def keyboard(func): 
-		"""Декоратор для создания клавиатуры"""
-		def create_(label: str = None, one_time: bool = True) -> str:
-			keyboard = VkKeyboard(one_time = one_time)
-			response: dict = func(label)
-
-			if response == {}: keyboard.get_empty_keyboard()
-			else:
-				for i in response:
-					if response.get(i) == None: keyboard.add_line()
-					else: keyboard.add_button(i, response.get(i))
-
-			return keyboard.get_keyboard()
-
-		return create_
-
 	@keyboard
-	def take_keyboard(self, label: str) -> dict:
+	def take_keyboard(label: str) -> dict:
 		#color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary', 'белый': 'secondary'}
 		# Buttons
 		start = {'Начать': 'positive'}
@@ -102,32 +98,31 @@ class VkBot:
 		else: return {}
 
 
-
 	def bot_cycle(self):
 		"""Longpoll цикл бота"""
-
-		""" В database добавлена функция get_history вместо history для получения информации по кнопкам"""
 
 		while True:
 			for event in self.longpoll.listen():
 				if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 					text: str = event.text.lower()
 					if text == 'начать' and self.registration(event.user_id):
-						self.send_message(event.user_id,'Hello', self.take_keyboard('/menu'))	
-						self.create_user(event.user_id)
+						self.send_message(event.user_id,'Hello', self.take_keyboard(label = '/menu'))	
+						self.database.save_info(self.get_info_about_user(event.user_id))
 						self.database.change_history(event.user_id, '/menu')
 						
 					elif text == 'начать' and self.registration(event.user_id) == False: 
 						self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('start', False))
-					
-					if text == 'меню 2' and self.registration(event.user_id):
-						self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard('/menu2'))
 
-					if text == 'назад':		
-						self.send_message(event.user_id, 'Hello')
-					
-					if text == 'фото':
-						self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
+					if self.registration(event.user_id) or event.user_id in admin_ids:
+						if text == 'меню 2':
+							self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard(label = '/menu2'))
+
+						if text == 'назад':		
+							self.send_message(event.user_id, 'Hello')
+							self.database.change_history(event.user_id, flag = False)
+						
+						if text == 'фото':
+							self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard(label = '/menu2'))
 
 					if event.user_id in admin_ids:		
 						if text == 'exit()': sys.exit()
