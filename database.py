@@ -48,30 +48,24 @@ class DataBase:
 
     def get_history(self, id: int, short: bool = False) -> str:
         self.cursor.execute(""" SELECT history FROM users WHERE id == ? """, (id,))
+
         if short == False: return self.cursor.fetchone()[0]
         else:
-            catalog = self.cursor.fetchone()[0]
-            catalog = catalog[catalog.rfind('/'):]
-            return catalog
+            catalog: str = self.cursor.fetchone()[0]
+            return catalog[catalog.rfind('/'):]
 
     def change_history(self, id: int, catalog: str = '', flag: bool = True) -> None:
         
-        if catalog == '/menu' and flag: self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
-        elif catalog == '/menu' and flag == False: 
+        if flag: catalog = self.get_history(id) + catalog
+        else:
             catalog = self.get_history(id)
-            catalog = catalog[:catalog.rfind('/')]
-            self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
-        elif catalog == '/menu2' and flag: 
-            catalog = self.get_history(id) + catalog
-            self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
-        elif flag == False:
-            catalog = self.get_history(id)
-            catalog = catalog[: catalog.rfind('/')]
-            self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
+            if catalog.rfind('/') == 0: pass
+            else: catalog = catalog[: catalog.rfind('/')]
 
+        self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
         self.connector.commit()
 
-    def save_info(self, user_info: dict, catalog: str = '/menu') -> None:
+    def save_info(self, user_info: dict, catalog: str = '/start') -> None:
         """ сохраняет информацию в бaзу данных """
         self.cursor.execute(""" SELECT id FROM users WHERE id == ? """, (user_info["id"],))
         _one = self.cursor.fetchone()

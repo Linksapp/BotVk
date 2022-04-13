@@ -1,4 +1,5 @@
 import sys, time
+from typing import KeysView
 import vk_api
 from database import DataBase
 from vk_api.longpoll import VkLongPoll, VkEventType
@@ -90,33 +91,43 @@ class VkBot:
 			'Меню 2': 'secondary'
 		}
 
-		if label == 'start': return start
+		if label == '/start': return start
 		elif label == '/menu': return main_keyboard
 		elif label == '/menu2': return menu_2
 		else: return {}
 
 
 	def event_handler(self, event):
+
+		"""упростить код, оптимизировать, переписать обработку евентов"""
 		text: str = event.text.lower()
 
-		if text == 'начать' and self.registration(event.user_id):
-			self.send_message(event.user_id,'Hello', self.take_keyboard('/menu'))	
-			self.database.save_info(self.get_info_about_user(event.user_id))
-						
-		elif text == 'начать' and self.registration(event.user_id) == False: 
-			self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('start', False))
+		events = ['начать', 'меню', 'меню 2', 'назад', 'фото']
+		if text in events:
+			if text == events[0] and self.registration(event.user_id):
+				self.database.save_info(self.get_info_about_user(event.user_id))
+				self.send_message(event.user_id,'Hello', self.take_keyboard('/menu'))
+				self.database.change_history(event.user_id, '/menu')
 
-		if self.registration(event.user_id) or event.user_id in admin_ids:
-			if text == 'меню 2':
-				self.database.change_history(event.user_id, '/menu2')
-				self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard('/menu2'))
+			elif text == events[0] and self.registration(event.user_id) == False: 
+				self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('/start', False))
 
-			if text == 'назад':
-				self.database.change_history(event.user_id, flag = False)		
-				self.send_message(event.user_id, 'Hello', self.take_keyboard(self.database.get_history(event.user_id, True)))
-						
-			if text == 'фото':
-				self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
+
+			if self.registration(event.user_id) or event.user_id in admin_ids:
+				if text == events[1]: 
+					self.database.change_history(event.user_id, '/menu')
+					self.send_message(event.user_id, keyboard=self.take_keyboard('/menu'))
+				if text == events[2]:
+					self.database.change_history(event.user_id, '/menu2')
+					self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard('/menu2'))
+
+				elif text == events[3]:
+					self.database.change_history(event.user_id, flag = False)		
+					self.send_message(event.user_id, 'Hello', self.take_keyboard(self.database.get_history(event.user_id, True)))
+							
+				elif text == events[4]:
+					self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
+		else: self.send_message(event.user_id, 'Нет такой команды, попробуйте снова', self.take_keyboard(self.database.get_history(event.user_id, True)))
 
 		if event.user_id in admin_ids:		
 			if text == 'exit()': sys.exit()
@@ -129,7 +140,7 @@ class VkBot:
 				if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 					self.event_handler(event)
 
-
+"""При указании не верной команды, клавиатура не возвращается"""
 
 
 if __name__ == "__main__":
