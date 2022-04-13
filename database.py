@@ -44,11 +44,15 @@ class DataBase:
 
     def get_info(self, *args, **kwargs) -> dict: 
         # доделать позже, сделать *args **kwargs
-        self.cursor.execute(f"""SELECT {args} FROM users WHERE  """)
+        self.cursor.execute(f""" SELECT {args} FROM users WHERE  """)
 
-    def get_history(self, id: int) -> str:
+    def get_history(self, id: int, short: bool = False) -> str:
         self.cursor.execute(""" SELECT history FROM users WHERE id == ? """, (id,))
-        return self.cursor.fetchone()[0]
+        if short == False: return self.cursor.fetchone()[0]
+        else:
+            catalog = self.cursor.fetchone()[0]
+            catalog = catalog[catalog.rfind('/'):]
+            return catalog
 
     def change_history(self, id: int, catalog: str = '', flag: bool = True) -> None:
         
@@ -57,8 +61,8 @@ class DataBase:
             catalog = self.get_history(id)
             catalog = catalog[:catalog.rfind('/')]
             self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
-        elif catalog == '/manu2' and flag: 
-            catalog = self.get_history() + catalog
+        elif catalog == '/menu2' and flag: 
+            catalog = self.get_history(id) + catalog
             self.cursor.execute(""" UPDATE users SET history = ? WHERE id == ? """, (catalog, id))
         elif flag == False:
             catalog = self.get_history(id)
@@ -67,12 +71,12 @@ class DataBase:
 
         self.connector.commit()
 
-    def save_info(self, user_info: dict) -> None:
+    def save_info(self, user_info: dict, catalog: str = '/menu') -> None:
         """ сохраняет информацию в бaзу данных """
-        self.cursor.execute("""SELECT id FROM users WHERE id == ? """, (user_info["id"],))
+        self.cursor.execute(""" SELECT id FROM users WHERE id == ? """, (user_info["id"],))
         _one = self.cursor.fetchone()
         if _one == None or user_info["id"] not in _one: 
-            self.cursor.execute("""INSERT INTO users(id, first_name, last_name, registration) VALUES(?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], True))
+            self.cursor.execute(""" INSERT INTO users(id, first_name, last_name, history, registration) VALUES(?, ?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], catalog, True))
             self.connector.commit()
 
 
