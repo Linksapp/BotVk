@@ -1,4 +1,3 @@
-from cProfile import label
 import sys, time
 import vk_api
 from database import DataBase
@@ -8,7 +7,6 @@ from config import *
 
 
 """Переделать архитектуру записи и чтения данных"""
-'''Функция для подписки'''
 
 def test_time(func):
 	def test(a=None):
@@ -20,7 +18,7 @@ def test_time(func):
 
 def keyboard(func): 
 	"""Декоратор для создания клавиатуры"""
-	def create_(hz, label: str, one_time: bool = True) -> str:
+	def create_(self, label: str, one_time: bool = True) -> str:
 		"""hz я хз что это, просто костыль. Почему-то предается какой-то объект класса <__main__.VkBot object at 0x00000174B977B8E0> по этому вот так вот. 
 		Скорее всего это self которая есть у каждого метода класса, придумать как от него избавиться"""
 		keyboard = VkKeyboard(one_time = one_time)
@@ -98,36 +96,38 @@ class VkBot:
 		else: return {}
 
 
+	def event_handler(self, event):
+		text: str = event.text.lower()
+
+		if text == 'начать' and self.registration(event.user_id):
+			self.send_message(event.user_id,'Hello', self.take_keyboard('/menu'))	
+			self.database.save_info(self.get_info_about_user(event.user_id))
+						
+		elif text == 'начать' and self.registration(event.user_id) == False: 
+			self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('start', False))
+
+		if self.registration(event.user_id) or event.user_id in admin_ids:
+			if text == 'меню 2':
+				self.database.change_history(event.user_id, '/menu2')
+				self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard('/menu2'))
+
+			if text == 'назад':
+				self.database.change_history(event.user_id, flag = False)		
+				self.send_message(event.user_id, 'Hello', self.take_keyboard(self.database.get_history(event.user_id, True)))
+						
+			if text == 'фото':
+				self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
+
+		if event.user_id in admin_ids:		
+			if text == 'exit()': sys.exit()
+
 	def bot_cycle(self):
 		"""Longpoll цикл бота"""
 
 		while True:
 			for event in self.longpoll.listen():
 				if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-					text: str = event.text.lower()
-					if text == 'начать' and self.registration(event.user_id):
-						self.send_message(event.user_id,'Hello', self.take_keyboard(label = '/menu'))	
-						self.database.save_info(self.get_info_about_user(event.user_id))
-						self.database.change_history(event.user_id, '/menu')
-						
-					elif text == 'начать' and self.registration(event.user_id) == False: 
-						self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('start', False))
-
-					if self.registration(event.user_id) or event.user_id in admin_ids:
-						if text == 'меню 2':
-							self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard(label = '/menu2'))
-
-						if text == 'назад':		
-							self.send_message(event.user_id, 'Hello')
-							self.database.change_history(event.user_id, flag = False)
-						
-						if text == 'фото':
-							self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard(label = '/menu2'))
-
-					if event.user_id in admin_ids:		
-						if text == 'exit()': sys.exit()
-
-					# Сделать ответ на не команды 
+					self.event_handler(event)
 
 
 
