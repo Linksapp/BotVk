@@ -1,5 +1,4 @@
 import sys, time
-from typing import KeysView
 import vk_api
 from database import DataBase
 from vk_api.longpoll import VkLongPoll, VkEventType
@@ -41,25 +40,24 @@ class VkBot:
 		self.vk = self.session.get_api()
 		self.database = DataBase()
 
-		self.longpoll = VkLongPoll(self.session, group_id = group_id)
+		self.group_id = group_id
 
-
+		self.longpoll = VkLongPoll(self.session, group_id = self.group_id)
 
 	def registration(self, id: int) -> bool:
 		"""Проверяет подписку"""
-		return bool(self.vk.groups.isMember(group_id=group_id, user_id = id))
+		return self.vk.groups.isMember(group_id=self.group_id, user_id = id)
 
 	def send_message(self, id: int, text: str = None, keyboard: dict = None, owner_id: str = '-211021014', 
 					media_id: str = '457239017', attachment: str = None) -> None:
 		"""Отправляет сообщения"""
-		if attachment == 'photo':
-			try:
+		try:
+			if attachment == 'photo':
 				self.vk.messages.send(user_id = id, attachment = attachment + owner_id + '_' + media_id, random_id = 0, keyboard=keyboard)
-			except Exception as error: print(error)
-		else:
-			try:
+			else:
 				self.vk.messages.send(user_id = id, message = str(text), random_id = 0, keyboard = keyboard)
-			except Exception as error: print(error)
+		except Exception as error: print(error)
+
 
 	def get_info_about_user(self, id: int) -> dict:
 		"""Возвращает информацию о пользователе"""
@@ -119,12 +117,15 @@ class VkBot:
 					self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard('/menu2'))
 
 				elif text == events[3]:
-					self.database.change_history(event.user_id, flag = False)		
+					self.database.change_history(event.user_id, flag = False)
 					self.send_message(event.user_id, 'Hello', self.take_keyboard(self.database.get_history(event.user_id, True)))
 							
 				elif text == events[4]:
 					self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
-		else: self.send_message(event.user_id, 'Нет такой команды, попробуйте снова', self.take_keyboard(self.database.get_history(event.user_id, True)))
+		else: 
+			if self.database.get_history(event.user_id, True) == '':
+				self.database.change_history(event.user_id, '/start')
+			self.send_message(event.user_id, 'Нет такой команды, попробуйте снова', self.take_keyboard(self.database.get_history(event.user_id, True)))
 
 		if event.user_id in admin_ids:		
 			if text == 'exit()': sys.exit()
