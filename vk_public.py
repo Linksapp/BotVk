@@ -63,13 +63,10 @@ class VkBot:
 
 	def get_info_about_user(self, id: int) -> dict:
 		"""Возвращает информацию о пользователе"""
-		info = {}
 		fields = ['id', 'first_name', 'last_name']
-		try: 
-			for _ in fields: info[_] = self.vk.users.get(user_id = id)[0][_]
+		try: return {_: self.vk.users.get(user_id = id)[0][_] for _ in fields} #for _ in fields: info[_] = self.vk.users.get(user_id = id)[0][_]
 		except Exception as error: print(error)
-		return info
-
+		return {}
 
 	@keyboard
 	def take_keyboard(label: str) -> dict:
