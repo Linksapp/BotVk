@@ -67,11 +67,13 @@ class DataBase:
 
     def save_info(self, user_info: dict, catalog: str = '/start') -> None:
         """ сохраняет информацию в бaзу данных """
-        self.cursor.execute(""" SELECT id FROM users WHERE id == ? """, (user_info["id"],))
-        _one = self.cursor.fetchone()
-        if _one == None or user_info["id"] not in _one: 
-            self.cursor.execute(""" INSERT INTO users(id, first_name, last_name, history, registration) VALUES(?, ?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], catalog, True))
-            self.connector.commit()
+        if user_info != {}:
+            self.cursor.execute(""" SELECT id FROM users WHERE id == ? """, (user_info["id"],))
+            _one = self.cursor.fetchone()
+            if _one == None or user_info["id"] not in _one: 
+                self.cursor.execute(""" INSERT INTO users(id, first_name, last_name, history, registration) VALUES(?, ?, ?, ?, ?)""", (user_info["id"], user_info["first_name"], user_info["last_name"], catalog, True))
+                self.connector.commit()
+                del _one
 
 
     def check_info(self) -> bool: pass
