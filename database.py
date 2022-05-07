@@ -1,7 +1,5 @@
 import os.path
 import sqlite3 as sql
-from typing import List
-from config import base_name
 
 # изменить файловую структуру, сделать __init__.py
 
@@ -22,7 +20,7 @@ def sql_(func):
 
 class DataBase:
     def __init__(self):
-        self.base_name = base_name
+        self.base_name = 'data_base.db'
         self.connector = None
         self.cursor = None
 
@@ -30,7 +28,7 @@ class DataBase:
         if os.path.isfile(self.base_name): print(f'\033[32m Инициализация файла {self.base_name} прошла успешно! \033[37m')
         else: print(f'\033[33m Файл {self.base_name} был заново создан, инициализация прошла успешно! \033[37m')
 
-        with sql.connect(f'{base_name}') as self.connector:
+        with sql.connect(f'{self.base_name}') as self.connector:
             self.cursor = self.connector.execute("""CREATE TABLE IF NOT EXISTS users(
                 id           INT DEFAULT 0,
                 first_name   VARCHAR,
@@ -42,9 +40,20 @@ class DataBase:
             self.connector.commit()
 
 
-    def get_info(self, *args, **kwargs) -> dict: 
-        # доделать позже, сделать *args **kwargs
-        self.cursor.execute(f""" SELECT {args} FROM users WHERE  """)
+    def get_info(self, table, **kwargs) -> dict: 
+        """ Метод для получения информации из бд
+        Задавать аргументы table - таблица, name | id | registration | history """
+        # Переделать для коректной работы
+
+        for i in kwargs:
+            if i == 'name': self.cursor.execute(f""" SELECT {table} FROM users WHERE {i} == {kwargs[i]} """)
+            elif i == 'id': self.cursor.execute(f""" SELECT {table} FROM users WHERE {i} == {kwargs[i]} """)
+            elif i == 'registration': self.cursor.execute(f""" SELECT {i} FROM users WHERE {i} == {kwargs[i]} """)
+            elif i == 'history': self.cursor.execute(f""" SELECT {table} FROM users WHERE {i} == {kwargs[i]} """)
+            else: pass
+            
+            return self.cursor.fetchone()
+       
 
     def get_history(self, id: int, short: bool = False) -> str:
         self.cursor.execute(""" SELECT history FROM users WHERE id == ? """, (id,))

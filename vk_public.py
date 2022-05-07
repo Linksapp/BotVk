@@ -68,6 +68,7 @@ class VkBot:
 
 	@keyboard
 	def take_keyboard(label: str) -> dict:
+		""" Возращает клавиатуру """
 		#color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary', 'белый': 'secondary'}
 		# Buttons
 		start = {'Начать': 'positive'}
@@ -123,8 +124,7 @@ class VkBot:
 				elif text == events[4]:
 					self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
 		else: 
-			if self.database.get_history(event.user_id, True) == '':
-				self.database.change_history(event.user_id, '/start')
+			if self.database.get_history(event.user_id, True) == '': self.database.change_history(event.user_id, '/start')
 			self.send_message(event.user_id, 'Нет такой команды, попробуйте снова', self.take_keyboard(self.database.get_history(event.user_id, True)))
 
 		if event.user_id in admin_ids:		
