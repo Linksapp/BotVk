@@ -1,3 +1,4 @@
+import math
 import sys, time
 import vk_api
 from database import DataBase
@@ -44,7 +45,7 @@ class VkBot:
 
 		self.longpoll = VkLongPoll(self.session, group_id = self.group_id)
 
-	def registration(self, id: int) -> bool:
+	def check_registration(self, id: int) -> bool:
 		"""Проверяет подписку"""
 		return self.vk.groups.isMember(group_id=self.group_id, user_id = id)
 
@@ -94,41 +95,46 @@ class VkBot:
 
 
 	def event_handler(self, event):
+		# Переписать код использую pattern mathcing
 
 		"""упростить код, оптимизировать, переписать обработку евентов"""
 		text: str = event.text.lower()
-
-		events = ['начать', 'меню', 'меню 2', 'назад', 'фото']
-		if text in events:
-			if text == events[0] and self.registration(event.user_id):
-				self.database.save_info(self.get_info_about_user(event.user_id))
-				self.send_message(event.user_id,'Hello', self.take_keyboard('/menu'))
-				self.database.change_history(event.user_id, '/menu')
-
-			elif text == events[0] and self.registration(event.user_id) == False: 
-				self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('/start', False))
-
-
-			if self.registration(event.user_id) or event.user_id in admin_ids:
-				if text == events[1]: 
+		
+		match text:
+			case 'начать':
+				if self.check_registration(event.user_id):
+					self.database.save_info(self.get_info_about_user(event.user_id))
+					self.send_message(event.user_id,'Hello', self.take_keyboard('/menu'))
 					self.database.change_history(event.user_id, '/menu')
-					self.send_message(event.user_id, keyboard=self.take_keyboard('/menu'))
-				if text == events[2]:
+				else: self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('/start', False))
+			case 'меню':
+				if self.check_registration(event.user_id):
+					self.database.change_history(event.user_id, '/menu')
+					self.send_message(event.user_id, keyboard = self.take_keyboard('/menu'))
+				else: self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard('/start', False))
+			case 'меню2': 
+				if self.check_registration(event.user_id):
 					self.database.change_history(event.user_id, '/menu2')
 					self.send_message(event.user_id, 'Меню номер 2', self.take_keyboard('/menu2'))
-
-				elif text == events[3]:
+				else: self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard(self.database.get_history(event.user_id, True), False))
+			case 'назад':
+				if self.check_registration(event.user_id):
 					self.database.change_history(event.user_id, flag = False)
 					self.send_message(event.user_id, 'Hello', self.take_keyboard(self.database.get_history(event.user_id, True)))
-							
-				elif text == events[4]:
-					self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
-		else: 
-			if self.database.get_history(event.user_id, True) == '': self.database.change_history(event.user_id, '/start')
-			self.send_message(event.user_id, 'Нет такой команды, попробуйте снова', self.take_keyboard(self.database.get_history(event.user_id, True)))
+				else: self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard(self.database.get_history(event.user_id, True), False))
+			case 'фото':
+				if self.check_registration(event.user_id): self.send_message(event.user_id, attachment='photo', keyboard = self.take_keyboard('/menu2'))
+				else: self.send_message(event.user_id, 'Подпишись на группу!',  self.take_keyboard(self.database.get_history(event.user_id, True), False))
+			case _: 
+				if event.user_id in admin_ids:
+					if text == 'exit()': 
+						self.send_message(event.user_id, 'Бот отключен')
+						sys.exit()
+				elif self.database.get_history(event.user_id, True) == '': 
+					self.database.change_history(event.user_id, '/start')
+					self.send_message(event.user_id, 'Нет такой команды, попробуйте снова', self.take_keyboard(self.database.get_history(event.user_id, True)))
 
-		if event.user_id in admin_ids:		
-			if text == 'exit()': sys.exit()
+				
 
 	def bot_cycle(self):
 		"""Longpoll цикл бота"""
@@ -137,6 +143,8 @@ class VkBot:
 			for event in self.longpoll.listen():
 				if event.type == VkEventType.MESSAGE_NEW and event.to_me:
 					self.event_handler(event)
+
+		
 
 """При указании не верной команды, клавиатура не возвращается"""
 

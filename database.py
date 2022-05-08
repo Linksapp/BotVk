@@ -40,19 +40,14 @@ class DataBase:
             self.connector.commit()
 
 
-    def get_info(self, table, **kwargs) -> dict: 
+    def get_info(self, id: int, table: str = 'users') -> dict: 
         """ Метод для получения информации из бд
         Задавать аргументы table - таблица, name | id | registration | history """
         # Переделать для коректной работы
 
-        for i in kwargs:
-            if i == 'name': self.cursor.execute(f""" SELECT {table} FROM users WHERE {i} == {kwargs[i]} """)
-            elif i == 'id': self.cursor.execute(f""" SELECT {table} FROM users WHERE {i} == {kwargs[i]} """)
-            elif i == 'registration': self.cursor.execute(f""" SELECT {i} FROM users WHERE {i} == {kwargs[i]} """)
-            elif i == 'history': self.cursor.execute(f""" SELECT {table} FROM users WHERE {i} == {kwargs[i]} """)
-            else: pass
-            
-            return self.cursor.fetchone()
+        self.cursor.execute(f""" SELECT first_name, last_name, history, registration FROM {table} WHERE  id == ? """, (id,))
+        info = self.cursor.fetchone()
+        return {'id': id, 'first_name': info[0], 'last_name': info[1], 'history': info[2], 'registration': info[3]}
        
 
     def get_history(self, id: int, short: bool = False) -> str:
