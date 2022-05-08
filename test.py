@@ -1,6 +1,13 @@
 """Сделать проверку есть ли пользователь уже в базе, чтобы не вызывать функцию просто так.
 Сделать проверку вкладок. Если уже имеется открытая вкладка, не добавлять новую, а вернуться в существующую вкладку"""
+import datetime
 
-from database import DataBase
+b = datetime.datetime.now()
 
-print(*DataBase().get_info(table = 'users', registration  = True))
+
+def a(c):
+    match c:
+        case 1: print(1)
+        case 2: print(2)
+        case _: print('\\')
+
